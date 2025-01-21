@@ -1,0 +1,23 @@
+{
+  "name": "server",
+  "version": "0.1.0",
+  "main": "index.js",
+  "license": "MIT",
+  "scripts": {
+    "sst": "npx sst dev --stage dev",
+    "deploy:dev": "npx sst deploy --stage dev",
+    "remove:dev": "npx sst remove --stage dev",
+    "deploy:prod": "npx sst deploy --stage production",
+    "remove:prod": "npx sst remove --stage production"
+  },
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.726.1",
+    "@aws-sdk/lib-dynamodb": "^3.726.1",
+    "axios": "^1.7.9",
+    "sst": "3.5.13"
+  },
+  "devDependencies": {
+    "@types/aws-lambda": "8.10.147",
+    "typescript": "^5.7.3"
+  }
+}
