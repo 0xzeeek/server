@@ -50,7 +50,7 @@ export default $config({
     -------------------------------------------- */
 
     // // Create an agent
-    const start = new sst.aws.Function("Create", {
+    const start = new sst.aws.Function("Start", {
       handler: "source/functions/start.handler",
       link: [agentMapping, agentData, userData],
       environment: {
@@ -68,6 +68,24 @@ export default $config({
       },
     });
 
+    // Create agent
+    const create = new sst.aws.Function("Create", {
+      handler: "source/functions/create.handler",
+      link: [agentData],
+      environment: {
+        API_KEY: process.env.API_KEY || "",
+      },
+    });
+
+    // Update agent data
+    const update = new sst.aws.Function("Update", {
+      handler: "source/functions/update.handler",
+      link: [agentData],
+      environment: {
+        API_KEY: process.env.API_KEY || "",
+      },
+    });
+
     /* --------------------------------------------
     // API Gateway
     -------------------------------------------- */
@@ -76,6 +94,7 @@ export default $config({
 
     api.route("GET /agent", fetch.arn);
     api.route("POST /start", start.arn);
-
+    api.route("POST /update", update.arn);
+    api.route("POST /create", create.arn);
   },
 });

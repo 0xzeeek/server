@@ -1,7 +1,3 @@
-// checks the mapping table for the agent container url
-// sends a message to the container to destroy the agent
-// deletes the mapping from the table
-
 import { Resource } from "sst";
 import { APIGatewayProxyHandlerV2, APIGatewayProxyEventV2, APIGatewayProxyResultV2 } from "aws-lambda";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
@@ -42,9 +38,11 @@ export const handler: APIGatewayProxyHandlerV2 = async (
       };
     }
 
+    const { password, ...rest } = agentData.Item;
+
     return {
       statusCode: 200,
-      body: JSON.stringify({ success: true, data: agentData.Item }),
+      body: JSON.stringify({ success: true, data: rest }),
     };
   } catch (error) {
     console.error("Error in destroy handler:", error);

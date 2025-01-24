@@ -11,6 +11,11 @@ const ddb = DynamoDBDocumentClient.from(client);
 interface CreateAgentRequest {
   agentId: string;
   characterFile: string;
+  twitterCredentials: {
+    username: string;
+    email: string;
+    password: string;
+  };
 }
 
 interface ContainerResponse {
@@ -32,27 +37,28 @@ export const handler: APIGatewayProxyHandlerV2 = async (
     if (!event.body) {
       return {
         statusCode: 400,
-        body: JSON.stringify({ 
+        body: JSON.stringify({
           success: false,
-          error: "Missing request body" 
+          error: "Missing request body",
         }),
       };
     }
 
-    const { agentId, characterFile }: CreateAgentRequest = JSON.parse(event.body);
+    const { agentId, characterFile, twitterCredentials }: CreateAgentRequest = JSON.parse(event.body);
 
-    if (!agentId || !characterFile) {
+    if (!agentId || !characterFile || !twitterCredentials) {
       return {
         statusCode: 400,
         body: JSON.stringify({
           success: false,
-          error: "Missing required fields: agentId and characterFile",
+          error: "Missing required fields: agentId, characterFile, and twitterCredentials",
         }),
       };
     }
 
     const serviceUrl = process.env.SERVICE_URL;
     if (!serviceUrl) {
+      console.error(new Error("SERVICE_URL environment variable is not set"));
       throw new Error("SERVICE_URL environment variable is not set");
     }
 
@@ -61,12 +67,13 @@ export const handler: APIGatewayProxyHandlerV2 = async (
       const createResponse = await axios.post<ContainerResponse>(`${serviceUrl}/start`, {
         agentId,
         characterFile,
+        twitterCredentials,
       });
 
       const { data } = createResponse;
-      
+
       // Handle case where metadata isn't ready yet
-      if (data.error === 'Container metadata not yet available') {
+      if (data.error === "Container metadata not yet available") {
         return {
           statusCode: 503,
           body: JSON.stringify({
@@ -101,15 +108,14 @@ export const handler: APIGatewayProxyHandlerV2 = async (
 
       return {
         statusCode: 200,
-        body: JSON.stringify({ 
-          success: true, 
-          data: { 
-            agentId, 
-            container: data.data.container 
-          } 
+        body: JSON.stringify({
+          success: true,
+          data: {
+            agentId,
+            container: data.data.container,
+          },
         }),
       };
-
     } catch (error) {
       if (error instanceof AxiosError) {
         if (error.response?.status === 503) {
@@ -121,17 +127,11 @@ export const handler: APIGatewayProxyHandlerV2 = async (
             }),
           };
         }
-        
-        console.error("Container service error:", {
-          status: error.response?.status,
-          data: error.response?.data,
-        });
       }
-      throw error; // Re-throw for general error handling
+      throw error; 
     }
-
   } catch (error) {
-    console.error("Error creating agent:", error);
+    console.error(new Error("Error creating agent:", { cause: error }));
     return {
       statusCode: 500,
       body: JSON.stringify({

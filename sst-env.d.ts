@@ -25,6 +25,14 @@ declare module "sst" {
       "name": string
       "type": "sst.aws.Function"
     }
+    "Start": {
+      "name": string
+      "type": "sst.aws.Function"
+    }
+    "Update": {
+      "name": string
+      "type": "sst.aws.Function"
+    }
     "UserData": {
       "name": string
       "type": "sst.aws.Dynamo"
