@@ -20,6 +20,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (
     // if (authError) return authError;
 
     const agentId = event.queryStringParameters?.agentId;
+
     if (!agentId) {
       return {
         statusCode: 400,

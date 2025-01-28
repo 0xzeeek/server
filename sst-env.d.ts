@@ -25,6 +25,10 @@ declare module "sst" {
       "name": string
       "type": "sst.aws.Function"
     }
+    "Remove": {
+      "name": string
+      "type": "sst.aws.Function"
+    }
     "Start": {
       "name": string
       "type": "sst.aws.Function"

@@ -25,10 +25,10 @@ export const handler: APIGatewayProxyHandlerV2 = async (
     const agentData = JSON.parse(event.body);
 
     // Validate required fields
-    if (!agentData.agentId) {
+    if (!agentData.agentId || !agentData.userId) {
       return {
         statusCode: 400,
-        body: JSON.stringify({ error: "agentId is required in request body" }),
+        body: JSON.stringify({ error: "agentId and userId are required in request body" }),
       };
     }
 
@@ -60,6 +60,17 @@ export const handler: APIGatewayProxyHandlerV2 = async (
       new PutCommand({
         TableName: Resource.AgentData.name,
         Item: agentData,
+      })
+    );
+
+    // create the agent in user table
+    await ddb.send(
+      new PutCommand({
+        TableName: Resource.UserData.name,
+        Item: {
+          userId: agentData.userId,
+          agentId: agentData.agentId,
+        },
       })
     );
 

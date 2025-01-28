@@ -52,7 +52,7 @@ export default $config({
     // // Create an agent
     const start = new sst.aws.Function("Start", {
       handler: "source/functions/start.handler",
-      link: [agentMapping, agentData, userData],
+      link: [agentMapping, agentData],
       environment: {
         API_KEY: process.env.API_KEY || "",
         SERVICE_URL: process.env.SERVICE_URL || "",
@@ -62,7 +62,7 @@ export default $config({
     // Fetch agent data
     const fetch = new sst.aws.Function("Fetch", {
       handler: "source/functions/fetch.handler",
-      link: [agentData],
+      link: [agentData, userData],
       environment: {
         API_KEY: process.env.API_KEY || "",
       },
@@ -71,7 +71,7 @@ export default $config({
     // Create agent
     const create = new sst.aws.Function("Create", {
       handler: "source/functions/create.handler",
-      link: [agentData],
+      link: [agentData, userData],
       environment: {
         API_KEY: process.env.API_KEY || "",
       },
@@ -81,6 +81,15 @@ export default $config({
     const update = new sst.aws.Function("Update", {
       handler: "source/functions/update.handler",
       link: [agentData],
+      environment: {
+        API_KEY: process.env.API_KEY || "",
+      },
+    });
+
+    // Delete agent
+    const remove = new sst.aws.Function("Remove", {
+      handler: "source/functions/remove.handler",
+      link: [agentData, userData],
       environment: {
         API_KEY: process.env.API_KEY || "",
       },
@@ -96,5 +105,6 @@ export default $config({
     api.route("POST /start", start.arn);
     api.route("POST /update", update.arn);
     api.route("POST /create", create.arn);
+    api.route("DELETE /remove", remove.arn);
   },
 });
