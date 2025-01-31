@@ -17,18 +17,32 @@ export default $config({
   },
   async run() {
     /* --------------------------------------------
+    // API Gateway
+    -------------------------------------------- */
+    const api = new sst.aws.ApiGatewayV2("AgentApi");
+
+    /* --------------------------------------------
     // Dynamo Tables
     -------------------------------------------- */
 
-    // Create a user dynamo table
+    // Agent data dynamo table
     const agentData = new sst.aws.Dynamo("AgentData", {
       fields: {
         agentId: "string", // Partition key
+        remove: "string",
+        createdAt: "string",
       },
       primaryIndex: { hashKey: "agentId" },
+      globalIndexes: {
+        // GSI for "remove" so we can query by removal status
+        byRemovalStatus: {
+          hashKey: "remove",
+          rangeKey: "createdAt",
+        },
+      },
     });
 
-    // Create a rate limit dynamo table
+    // User data dynamo table
     const userData = new sst.aws.Dynamo("UserData", {
       fields: {
         userId: "string", // Partition key
@@ -37,19 +51,29 @@ export default $config({
       primaryIndex: { hashKey: "userId", rangeKey: "agentId" },
     });
 
+    // Agent mapping table
     const agentMapping = new sst.aws.Dynamo("AgentMapping", {
       fields: {
-        agentId: "string", // Partition key
-        container: "string", // Sort key
+        taskArn: "string", // Partition key
+        agentId: "string",
+        status: "string",
       },
-      primaryIndex: { hashKey: "agentId", rangeKey: "container" },
+      primaryIndex: { hashKey: "agentId" },
+      globalIndexes: {
+        byStatus: {
+          hashKey: "status",
+        },
+        byTaskArn: {
+          hashKey: "taskArn",
+        },
+      },
     });
 
     /* --------------------------------------------
     // Functions
     -------------------------------------------- */
 
-    // // Create an agent
+    // Agent start function
     const start = new sst.aws.Function("Start", {
       handler: "source/functions/start.handler",
       link: [agentMapping, agentData],
@@ -86,20 +110,66 @@ export default $config({
       },
     });
 
-    // Delete agent
+    // Remove agent
     const remove = new sst.aws.Function("Remove", {
       handler: "source/functions/remove.handler",
-      link: [agentData, userData],
+      link: [agentData, userData, agentMapping],
       environment: {
         API_KEY: process.env.API_KEY || "",
       },
     });
 
     /* --------------------------------------------
-    // API Gateway
+    // Agent Health
+    -------------------------------------------- */
+    // update mapping functions
+    const updateMapping = new sst.aws.Function("UpdateMapping", {
+      handler: "source/jobs/updateMapping.handler",
+      link: [agentMapping],
+    });
+
+    // listening bus for ecs task state change
+    const defaultBusArn = "arn:aws:events:us-east-1:692859940880:event-bus/default";
+    sst.aws.Bus.subscribe("EcsStoppedSubscription", defaultBusArn, updateMapping.arn, {
+      pattern: {
+        source: ["aws.ecs"],
+        detailType: ["ECS Task State Change"],
+        detail: {
+          lastStatus: ["STOPPED"],
+        },
+      },
+    });
+
+    const restartAgents = new sst.aws.Function("RestartAgents", {
+      handler: "source/jobs/restartAgents.handler",
+      link: [agentMapping, agentData,api],
+    });
+
+    new sst.aws.Cron("RestartAgentsCron", {
+      function: restartAgents.arn,
+      schedule: "rate(2 hours)",
+    });
+
+    /* --------------------------------------------
+    // Agent removal
     -------------------------------------------- */
 
-    const api = new sst.aws.ApiGatewayV2("AgentApi");
+    const removeAgents = new sst.aws.Function("RemoveAgents", {
+      handler: "source/jobs/removeAgents.handler",
+      link: [agentData],
+      environment: {
+        RPC_URL: process.env.RPC_URL || "",
+      },
+    });
+
+    new sst.aws.Cron("RemoveAgentsCron", {
+      function: removeAgents.arn,
+      schedule: "rate(1 hour)",
+    });
+
+    /* --------------------------------------------
+    // API Endpoints
+    -------------------------------------------- */
 
     api.route("GET /agent", fetch.arn);
     api.route("POST /start", start.arn);

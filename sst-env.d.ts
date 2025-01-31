@@ -29,11 +29,23 @@ declare module "sst" {
       "name": string
       "type": "sst.aws.Function"
     }
+    "RemoveAgents": {
+      "name": string
+      "type": "sst.aws.Function"
+    }
+    "RestartAgents": {
+      "name": string
+      "type": "sst.aws.Function"
+    }
     "Start": {
       "name": string
       "type": "sst.aws.Function"
     }
     "Update": {
+      "name": string
+      "type": "sst.aws.Function"
+    }
+    "UpdateMapping": {
       "name": string
       "type": "sst.aws.Function"
     }

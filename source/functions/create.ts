@@ -25,10 +25,10 @@ export const handler: APIGatewayProxyHandlerV2 = async (
     const agentData = JSON.parse(event.body);
 
     // Validate required fields
-    if (!agentData.agentId || !agentData.userId) {
+    if (!agentData.agentId || !agentData.user) {
       return {
         statusCode: 400,
-        body: JSON.stringify({ error: "agentId and userId are required in request body" }),
+        body: JSON.stringify({ error: "agentId and user are required in request body" }),
       };
     }
 
@@ -53,7 +53,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (
     agentData.updatedAt = now;
 
     // Add remove param
-    agentData.remove = false;
+    agentData.remove = "false";
 
     // Create the agent in DynamoDB
     await ddb.send(
@@ -68,7 +68,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (
       new PutCommand({
         TableName: Resource.UserData.name,
         Item: {
-          userId: agentData.userId,
+          userId: agentData.user,
           agentId: agentData.agentId,
         },
       })

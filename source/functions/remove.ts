@@ -52,7 +52,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (
           "#remove": "remove",
         },
         ExpressionAttributeValues: {
-          ":remove": true,
+          ":remove": "true",
           ":updatedAt": new Date().toISOString(),
         },
       })
@@ -64,6 +64,17 @@ export const handler: APIGatewayProxyHandlerV2 = async (
         TableName: Resource.UserData.name,
         Key: {
           userId,
+          agentId,
+        },
+      })
+    );
+
+    // Delete the agent from the mapping table
+    // TODO: this isn't working
+    await ddb.send(
+      new DeleteCommand({
+        TableName: Resource.AgentMapping.name,
+        Key: {
           agentId,
         },
       })

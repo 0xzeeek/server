@@ -99,7 +99,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (
           TableName: Resource.AgentMapping.name,
           Item: {
             agentId,
-            container: data.data.container,
+            taskArn: data.data.container,
             status: "RUNNING",
             createdAt: new Date().toISOString(),
           },

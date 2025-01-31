@@ -5,6 +5,7 @@
   "license": "MIT",
   "scripts": {
     "sst": "npx sst dev --stage dev",
+    "unlock": "npx sst unlock --stage dev",
     "deploy:dev": "npx sst deploy --stage dev",
     "remove:dev": "npx sst remove --stage dev",
     "deploy:prod": "npx sst deploy --stage production",
@@ -14,6 +15,7 @@
     "@aws-sdk/client-dynamodb": "^3.726.1",
     "@aws-sdk/lib-dynamodb": "^3.726.1",
     "axios": "^1.7.9",
+    "ethers": "^6.13.5",
     "sst": "3.5.13"
   },
   "devDependencies": {

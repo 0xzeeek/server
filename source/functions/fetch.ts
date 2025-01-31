@@ -1,7 +1,7 @@
 import { Resource } from "sst";
 import { APIGatewayProxyHandlerV2, APIGatewayProxyEventV2, APIGatewayProxyResultV2 } from "aws-lambda";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { DynamoDBDocumentClient, GetCommand, ScanCommand } from "@aws-sdk/lib-dynamodb";
+import { DynamoDBDocumentClient, GetCommand, ScanCommand, QueryCommand } from "@aws-sdk/lib-dynamodb";
 import { checkApiKey } from "./utils/auth";
 
 const client = new DynamoDBClient({});
@@ -64,9 +64,11 @@ export const handler: APIGatewayProxyHandlerV2 = async (
       };
     }
 
+    const activeAgents = await getActiveAgents();
+
     return {
-      statusCode: 400,
-      body: JSON.stringify({ error: "agentId or userId is required" }),
+      statusCode: 200,
+      body: JSON.stringify({ success: true, data: activeAgents }),
     };
   } catch (error) {
     console.error("Error in destroy handler:", error);
@@ -96,4 +98,22 @@ const getAgentData = async (agentId: string) => {
   const { password, ...rest } = agentData.Item;
 
   return rest;
+};
+
+const getActiveAgents = async () => {
+  const result = await ddb.send(
+    new QueryCommand({
+      TableName: Resource.AgentData.name,
+      IndexName: "byRemovalStatus",
+      KeyConditionExpression: "#remove = :val",
+      ExpressionAttributeNames: {
+        "#remove": "remove",
+      },
+      ExpressionAttributeValues: {
+        ":val": "false",
+      },
+    })
+  );
+
+  return result.Items;
 };
