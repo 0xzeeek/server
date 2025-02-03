@@ -3,6 +3,7 @@ import { APIGatewayProxyHandlerV2, APIGatewayProxyEventV2, APIGatewayProxyResult
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient, PutCommand, GetCommand } from "@aws-sdk/lib-dynamodb";
 import { checkApiKey } from "./utils/auth";
+import axios from "axios";
 
 const client = new DynamoDBClient({});
 const ddb = DynamoDBDocumentClient.from(client);
@@ -47,6 +48,14 @@ export const handler: APIGatewayProxyHandlerV2 = async (
       };
     }
 
+    // check if twitter is being used
+    const twitterData = await getTwitterMapping(agentData.username);
+
+    if (twitterData) {
+      console.log(`Twitter user already running, removing old agent: ${twitterData.agentId}`);
+      await axios.delete(`${Resource.AgentApi.url}/remove?agentId=${twitterData.agentId}`);
+    }
+
     // Add creation timestamp
     const now = new Date().toISOString();
     agentData.createdAt = now;
@@ -74,6 +83,17 @@ export const handler: APIGatewayProxyHandlerV2 = async (
       })
     );
 
+    // create twitter mapping
+    await ddb.send(
+      new PutCommand({
+        TableName: Resource.AgentTwitterMapping.name,
+        Item: {
+          username: agentData.username,
+          agentId: agentData.agentId,
+        },
+      })
+    );
+
     return {
       statusCode: 201,
       body: JSON.stringify({
@@ -90,4 +110,23 @@ export const handler: APIGatewayProxyHandlerV2 = async (
       }),
     };
   }
-}; 
+};
+
+const getTwitterMapping = async (username: string) => {
+  const twitterMappingData = await ddb.send(
+    new GetCommand({
+      TableName: Resource.AgentTwitterMapping.name,
+      Key: {
+        username,
+      },
+    })
+  );
+
+  const twitterMapping = twitterMappingData.Item;
+
+  if (!twitterMapping) {
+    return null;
+  }
+
+  return twitterMapping;
+};

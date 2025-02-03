@@ -69,6 +69,13 @@ export default $config({
       },
     });
 
+    const agentTwitterMapping = new sst.aws.Dynamo("AgentTwitterMapping", {
+      fields: {
+        username: "string",
+      },
+      primaryIndex: { hashKey: "username" },
+    });
+
     /* --------------------------------------------
     // Functions
     -------------------------------------------- */
@@ -76,7 +83,7 @@ export default $config({
     // Agent start function
     const start = new sst.aws.Function("Start", {
       handler: "source/functions/start.handler",
-      link: [agentMapping, agentData],
+      link: [agentMapping],
       environment: {
         API_KEY: process.env.API_KEY || "",
         SERVICE_URL: process.env.SERVICE_URL || "",
@@ -95,7 +102,7 @@ export default $config({
     // Create agent
     const create = new sst.aws.Function("Create", {
       handler: "source/functions/create.handler",
-      link: [agentData, userData],
+      link: [agentData, userData, agentTwitterMapping, api],
       environment: {
         API_KEY: process.env.API_KEY || "",
       },
@@ -113,7 +120,7 @@ export default $config({
     // Remove agent
     const remove = new sst.aws.Function("Remove", {
       handler: "source/functions/remove.handler",
-      link: [agentData, userData, agentMapping],
+      link: [agentData, userData, agentMapping, agentTwitterMapping],
       environment: {
         API_KEY: process.env.API_KEY || "",
       },
@@ -142,7 +149,7 @@ export default $config({
 
     const restartAgents = new sst.aws.Function("RestartAgents", {
       handler: "source/jobs/restartAgents.handler",
-      link: [agentMapping, agentData,api],
+      link: [agentMapping, agentData, api],
     });
 
     new sst.aws.Cron("RestartAgentsCron", {

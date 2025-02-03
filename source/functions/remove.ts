@@ -26,21 +26,23 @@ export const handler: APIGatewayProxyHandlerV2 = async (
     }
 
     // Check if agent exists and get userId
-    const existingAgent = await ddb.send(
+    const existingAgentItem = await ddb.send(
       new GetCommand({
         TableName: Resource.AgentData.name,
         Key: { agentId },
       })
     );
 
-    if (!existingAgent.Item) {
+    const existingAgent = existingAgentItem.Item;
+
+    if (!existingAgent) {
       return {
         statusCode: 404,
         body: JSON.stringify({ error: "Agent not found" }),
       };
     }
 
-    const userId = existingAgent.Item.user;
+    const userId = existingAgent.user;
 
     // Mark agent as removed in AgentData table
     await ddb.send(
@@ -58,27 +60,37 @@ export const handler: APIGatewayProxyHandlerV2 = async (
       })
     );
 
-    // Delete the agent record from UserData table
-    await ddb.send(
-      new DeleteCommand({
-        TableName: Resource.UserData.name,
-        Key: {
-          userId,
-          agentId,
-        },
-      })
-    );
-
-    // Delete the agent from the mapping table
-    // TODO: this isn't working
-    await ddb.send(
-      new DeleteCommand({
-        TableName: Resource.AgentMapping.name,
-        Key: {
-          agentId,
-        },
-      })
-    );
+    // Delete records from all tables in parallel
+    await Promise.all([
+      // Delete from UserData table
+      ddb.send(
+        new DeleteCommand({
+          TableName: Resource.UserData.name,
+          Key: {
+            userId,
+            agentId,
+          },
+        })
+      ),
+      // Delete from AgentMapping table
+      ddb.send(
+        new DeleteCommand({
+          TableName: Resource.AgentMapping.name,
+          Key: {
+            agentId,
+          },
+        })
+      ),
+      // Delete from AgentTwitterMapping table
+      ddb.send(
+        new DeleteCommand({
+          TableName: Resource.AgentTwitterMapping.name,
+          Key: {
+            username: existingAgent.username,
+          },
+        })
+      ),
+    ]);
 
     return {
       statusCode: 200,
@@ -88,7 +100,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (
       }),
     };
   } catch (error) {
-    console.error("Error in delete handler:", error);
+    console.error("Error in remove handler:", error);
     return {
       statusCode: 500,
       body: JSON.stringify({

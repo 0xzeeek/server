@@ -1,7 +1,7 @@
 import { Resource } from "sst";
 import { APIGatewayProxyEventV2, APIGatewayProxyHandlerV2, APIGatewayProxyResultV2 } from "aws-lambda";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { DynamoDBDocumentClient, PutCommand } from "@aws-sdk/lib-dynamodb";
+import { DynamoDBDocumentClient, GetCommand, PutCommand } from "@aws-sdk/lib-dynamodb";
 import axios, { AxiosError } from "axios";
 import { checkApiKey } from "./utils/auth";
 
@@ -51,7 +51,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (
         statusCode: 400,
         body: JSON.stringify({
           success: false,
-          error: "Missing required fields: agentId, characterFile, and twitterCredentials",
+          error: "Missing required fields in request",
         }),
       };
     }
@@ -128,12 +128,21 @@ export const handler: APIGatewayProxyHandlerV2 = async (
           };
         }
       }
-      throw error; 
+      throw error;
     }
   } catch (error) {
-    console.error(new Error("Error creating agent:", { cause: error }));
+    console.error(new Error("Error starting agent:", { cause: error }));
+    if (error instanceof Error) {
+      return {
+        statusCode: 200,
+        body: JSON.stringify({
+          success: false,
+          error: error.message,
+        }),
+      };
+    }
     return {
-      statusCode: 500,
+      statusCode: 200,
       body: JSON.stringify({
         success: false,
         error: "Internal server error",

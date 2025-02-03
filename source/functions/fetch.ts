@@ -71,7 +71,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (
       body: JSON.stringify({ success: true, data: activeAgents }),
     };
   } catch (error) {
-    console.error("Error in destroy handler:", error);
+    console.error("Error in fetch handler:", error);
     return {
       statusCode: 500,
       body: JSON.stringify({

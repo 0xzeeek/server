@@ -17,6 +17,10 @@ declare module "sst" {
       "name": string
       "type": "sst.aws.Dynamo"
     }
+    "AgentTwitterMapping": {
+      "name": string
+      "type": "sst.aws.Dynamo"
+    }
     "Create": {
       "name": string
       "type": "sst.aws.Function"
