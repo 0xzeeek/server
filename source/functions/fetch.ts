@@ -112,6 +112,7 @@ const getActiveAgents = async () => {
       ExpressionAttributeValues: {
         ":val": "false",
       },
+      Limit: 100
     })
   );
 
