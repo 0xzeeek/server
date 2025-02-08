@@ -154,7 +154,7 @@ export default $config({
 
     new sst.aws.Cron("RestartAgentsCron", {
       function: restartAgents.arn,
-      schedule: "rate(2 hours)",
+      schedule: "rate(30 minutes)",
     });
 
     /* --------------------------------------------
