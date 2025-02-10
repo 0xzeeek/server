@@ -163,7 +163,7 @@ export default $config({
 
     const removeAgents = new sst.aws.Function("RemoveAgents", {
       handler: "source/jobs/removeAgents.handler",
-      link: [agentData],
+      link: [agentData, userData, agentMapping, agentTwitterMapping],
       environment: {
         RPC_URL: process.env.RPC_URL || "",
       },
