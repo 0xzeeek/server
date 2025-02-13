@@ -24,8 +24,8 @@ interface Agent {
 }
 
 async function getAgents(): Promise<Agent[]> {
-  const fortyEightHoursAgo = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString();
-  const seventyTwoHoursAgo = new Date(Date.now() - 72 * 60 * 60 * 1000).toISOString();
+  const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+  const eightDaysAgo = new Date(Date.now() - 8 * 24 * 60 * 60 * 1000).toISOString();
 
   const command = new QueryCommand({
     TableName: Resource.AgentData.name,
@@ -37,8 +37,8 @@ async function getAgents(): Promise<Agent[]> {
     },
     ExpressionAttributeValues: {
       ":removeVal": "false",
-      ":startTime": seventyTwoHoursAgo,
-      ":endTime": fortyEightHoursAgo,
+      ":startTime": eightDaysAgo,
+      ":endTime": sevenDaysAgo,
     },
   });
 
