@@ -5,58 +5,6 @@
 
 declare module "sst" {
   export interface Resource {
-    "AgentApi": {
-      "type": "sst.aws.ApiGatewayV2"
-      "url": string
-    }
-    "AgentData": {
-      "name": string
-      "type": "sst.aws.Dynamo"
-    }
-    "AgentMapping": {
-      "name": string
-      "type": "sst.aws.Dynamo"
-    }
-    "AgentTwitterMapping": {
-      "name": string
-      "type": "sst.aws.Dynamo"
-    }
-    "Create": {
-      "name": string
-      "type": "sst.aws.Function"
-    }
-    "Fetch": {
-      "name": string
-      "type": "sst.aws.Function"
-    }
-    "Remove": {
-      "name": string
-      "type": "sst.aws.Function"
-    }
-    "RemoveAgents": {
-      "name": string
-      "type": "sst.aws.Function"
-    }
-    "RestartAgents": {
-      "name": string
-      "type": "sst.aws.Function"
-    }
-    "Start": {
-      "name": string
-      "type": "sst.aws.Function"
-    }
-    "Update": {
-      "name": string
-      "type": "sst.aws.Function"
-    }
-    "UpdateMapping": {
-      "name": string
-      "type": "sst.aws.Function"
-    }
-    "UserData": {
-      "name": string
-      "type": "sst.aws.Dynamo"
-    }
   }
 }
 /// <reference path="sst-env.d.ts" />

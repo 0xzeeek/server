@@ -29,7 +29,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (
         })
       );
 
-      if (!userData.Items) {
+      if (!userData.Items?.length) {
         return {
           statusCode: 404,
           body: JSON.stringify({ error: "User not found" }),
@@ -53,8 +53,8 @@ export const handler: APIGatewayProxyHandlerV2 = async (
 
       if (!agentData) {
         return {
-          statusCode: 404,
-          body: JSON.stringify({ error: "Agent not found" }),
+          statusCode: 200,
+          body: JSON.stringify({ success: false, message: "Agent not found" }),
         };
       }
 

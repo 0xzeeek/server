@@ -1,7 +1,7 @@
 /// <reference path="./.sst/platform/config.d.ts" />
 
 export default $config({
-  app(input) {
+  app() {
     return {
       name: "server",
       region: "us-east-1",
@@ -10,8 +10,8 @@ export default $config({
           profile: "3agent",
         },
       },
-      removal: input?.stage === "production" ? "retain" : "remove",
-      protect: ["production"].includes(input?.stage),
+      // removal: input?.stage === "production" ? "retain" : "remove",
+      // protect: ["production"].includes(input?.stage),
       home: "aws",
     };
   },
